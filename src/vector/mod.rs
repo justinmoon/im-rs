@@ -146,6 +146,19 @@ pub struct Vector<A> {
     vector: VectorInner<A>,
 }
 
+// Copy Druid's Data impl
+impl<T: PartialEq> PartialEq for Vector<T> {
+    fn eq(&self, other: &Self) -> bool {
+        // if a vec is small enough that it doesn't require an allocation
+        // it is 'inline'; in this case a pointer comparison is meaningless.
+        if self.is_inline() {
+            self.len() == other.len() && self.iter().zip(other.iter()).all(|(a, b)| a.eq(b))
+        } else {
+            self.ptr_eq(other)
+        }
+    }
+}
+
 enum VectorInner<A> {
     Inline(RRBPool<A>, InlineArray<A, RRB<A>>),
     Single(RRBPool<A>, PoolRef<Chunk<A>>),
